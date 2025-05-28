@@ -1,9 +1,9 @@
 
 var selector = document.querySelector(".selector_box");
 selector.addEventListener('click', () => {
-    if (selector.classList.contains("selector_open")){
+    if (selector.classList.contains("selector_open")) {
         selector.classList.remove("selector_open")
-    }else{
+    } else {
         selector.classList.add("selector_open")
     }
 })
@@ -43,25 +43,28 @@ upload.addEventListener('click', () => {
     upload.classList.remove("error_shown")
 });
 
-imageInput.addEventListener('change', (event) => {
-
+imageInput.addEventListener('change', async (event) => {
     upload.classList.remove("upload_loaded");
     upload.classList.add("upload_loading");
 
-    upload.removeAttribute("selected")
+    upload.removeAttribute("selected");
 
     var file = imageInput.files[0];
-    var data = new FormData();
-    data.append("image", file);
-        
-        var url = "https://cdn.discordapp.com/attachments/681890261806481465/1368960719923449866/Z.png?ex=6835cf05&is=68347d85&hm=f90d691bd2d9bf61af54e013c0cc7a1f745ed82311408a097844a93a70aa653b&"
-        upload.classList.remove("error_shown");
-        upload.setAttribute("selected", url);
+    if (!file) return;
+
+    // Zamiana na base64
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = () => {
+        const base64 = reader.result;
+        localStorage.setItem("uploadedImage", base64); // <-- zapis do localStorage
+
+        upload.setAttribute("selected", "1"); // nie używamy URL-a, tylko flagi
         upload.classList.add("upload_loaded");
         upload.classList.remove("upload_loading");
-        upload.querySelector(".upload_uploaded").src = url;
-
-})
+        upload.querySelector(".upload_uploaded").src = base64;
+    };
+});
 
 document.querySelector(".go").addEventListener('click', () => {
 
@@ -70,10 +73,10 @@ document.querySelector(".go").addEventListener('click', () => {
     var params = new URLSearchParams();
 
     params.set("sex", sex)
-    if (!upload.hasAttribute("selected")){
+    if (!upload.hasAttribute("selected")) {
         empty.push(upload);
         upload.classList.add("error_shown")
-    }else{
+    } else {
         params.set("image", upload.getAttribute("selected"))
     }
 
@@ -81,18 +84,18 @@ document.querySelector(".go").addEventListener('click', () => {
     var dateEmpty = false;
     document.querySelectorAll(".date_input").forEach((element) => {
         birthday = birthday + "." + element.value
-        if (isEmpty(element.value)){
+        if (isEmpty(element.value)) {
             dateEmpty = true;
         }
     })
 
     birthday = birthday.substring(1);
 
-    if (dateEmpty){
+    if (dateEmpty) {
         var dateElement = document.querySelector(".date");
         dateElement.classList.add("error_shown");
         empty.push(dateElement);
-    }else{
+    } else {
         params.set("birthday", birthday)
     }
 
@@ -100,41 +103,41 @@ document.querySelector(".go").addEventListener('click', () => {
 
         var input = element.querySelector(".input");
 
-        if (isEmpty(input.value)){
+        if (isEmpty(input.value)) {
             empty.push(element);
             element.classList.add("error_shown");
-        }else{
+        } else {
             params.set(input.id, input.value)
         }
 
     })
 
-    if (empty.length != 0){
+    if (empty.length != 0) {
         empty[0].scrollIntoView();
-    }else{
+    } else {
 
         forwardToId(params);
     }
 
 });
 
-function isEmpty(value){
+function isEmpty(value) {
 
     let pattern = /^\s*$/
     return pattern.test(value);
 
 }
 
-function forwardToId(params){
+function forwardToId(params) {
     location.href = "id.html?" + params;
 }
 
 var guide = document.querySelector(".guide_holder");
 guide.addEventListener('click', () => {
 
-    if (guide.classList.contains("unfolded")){
+    if (guide.classList.contains("unfolded")) {
         guide.classList.remove("unfolded");
-    }else{
+    } else {
         guide.classList.add("unfolded");
     }
 

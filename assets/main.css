@@ -1,16 +1,16 @@
 @import url('https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&display=swap');
 
 :root{
-    --home: url('https://i.imgur.com/5diJrXi.png');
-    --home-open: url('https://i.imgur.com/sdQYjBt.png');
-    --documents: url('https://i.imgur.com/28v1TEk.png');
-    --documents-open: url('https://i.imgur.com/ZHx3VDs.png');
-    --services: url('https://i.imgur.com/OxfOAfO.png');
-    --services-open: url('https://i.imgur.com/3V2f5uA.png');
-    --qr: url('https://i.imgur.com/M9MhD3N.png');
-    --qr-open: url('https://i.imgur.com/vmr8YVg.png');
-    --more: url('https://i.imgur.com/V5SoHXM.png');
-    --more-open: url('https://i.imgur.com/e9rnYLl.png');
+    --home: url('https://i.postimg.cc/FKYx7R9X/24-Hrm-SNYN.png');
+    --home-open: url('https://i.postimg.cc/zGtjzWYk/23-GX0o9q-F.png');
+    --documents: url('https://i.postimg.cc/25y0hG7J/14-cr-GEo-Br.png');
+    --documents-open: url('https://i.postimg.cc/mg8dPJCC/13-ax-Xjrw-O.png');
+    --services: url('https://i.postimg.cc/QdH7qyvp/42-4v-I1-V1-U.png');
+    --services-open: url('https://i.postimg.cc/fTHXmNqz/41-Ubxy-Ns5.png');
+    --qr: url('https://i.postimg.cc/zBmTvFtT/37-4-Wqw-P6-R.png');
+    --qr-open: url('https://i.postimg.cc/8z5R05ff/35-1-Wj-BH79.png');
+    --more: url('https://i.postimg.cc/RhL7jJTK/31-Kom-Xlf1.png');
+    --more-open: url('https://i.postimg.cc/GtCP7xvb/30-q-Qm4c7t.png');
     --text: #024b97;
     --shadow: 0px 0px 10px rgb(224, 224, 224);
 }

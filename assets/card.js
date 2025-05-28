@@ -155,3 +155,15 @@ function setData(id, value){
 function getRandom(min, max) {
   return parseInt(Math.random() * (max - min) + min);
 }
+
+/*const imageUrl = params.get('image');
+
+if (imageUrl) {
+    document.querySelector(".id_own_image").style.backgroundImage = `url('${imageUrl}')`;
+}
+*/
+
+const base64Image = localStorage.getItem("uploadedImage");
+if (base64Image) {
+    document.querySelector(".id_own_image").style.backgroundImage = `url('${base64Image}')`;
+}
