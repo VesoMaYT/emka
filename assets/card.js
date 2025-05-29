@@ -163,7 +163,36 @@ if (imageUrl) {
 }
 */
 
-const base64Image = localStorage.getItem("uploadedImage");
+/*const base64Image = localStorage.getItem("uploadedImage");
 if (base64Image) {
     document.querySelector(".id_own_image").style.backgroundImage = `url('${base64Image}')`;
+}*/
+
+(async function loadImageFromDB() {
+    const db = await openDB();
+    const tx = db.transaction("images", "readonly");
+    const store = tx.objectStore("images");
+    const request = store.get("mainImage");
+    request.onsuccess = () => {
+        const result = request.result;
+        if (result && result.data) {
+            document.querySelector(".id_own_image").style.backgroundImage = `url('${result.data}')`;
+        }
+    };
+})();
+
+function openDB() {
+    return new Promise((resolve, reject) => {
+        const request = indexedDB.open("PhotoDB", 1);
+        request.onupgradeneeded = function (event) {
+            const db = event.target.result;
+            db.createObjectStore("images", { keyPath: "id" });
+        };
+        request.onsuccess = function () {
+            resolve(request.result);
+        };
+        request.onerror = function () {
+            reject(request.error);
+        };
+    });
 }
