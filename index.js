@@ -52,19 +52,43 @@ imageInput.addEventListener('change', async (event) => {
     var file = imageInput.files[0];
     if (!file) return;
 
-    // Zamiana na base64
     const reader = new FileReader();
     reader.readAsDataURL(file);
-    reader.onload = () => {
+    reader.onload = async () => {
         const base64 = reader.result;
-        localStorage.setItem("uploadedImage", base64); // <-- zapis do localStorage
+        await saveImageToDB(base64);
 
-        upload.setAttribute("selected", "1"); // nie używamy URL-a, tylko flagi
+        upload.setAttribute("selected", "1");
         upload.classList.add("upload_loaded");
         upload.classList.remove("upload_loading");
         upload.querySelector(".upload_uploaded").src = base64;
     };
 });
+
+async function saveImageToDB(base64) {
+    const db = await openDB();
+    const tx = db.transaction("images", "readwrite");
+    const store = tx.objectStore("images");
+    store.put({ id: "mainImage", data: base64 });
+    await tx.done;
+}
+
+function openDB() {
+    return new Promise((resolve, reject) => {
+        const request = indexedDB.open("PhotoDB", 1);
+        request.onupgradeneeded = function (event) {
+            const db = event.target.result;
+            db.createObjectStore("images", { keyPath: "id" });
+        };
+        request.onsuccess = function () {
+            resolve(request.result);
+        };
+        request.onerror = function () {
+            reject(request.error);
+        };
+    });
+}
+
 
 document.querySelector(".go").addEventListener('click', () => {
 
