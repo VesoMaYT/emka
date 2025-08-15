@@ -107,6 +107,7 @@ setData("mothersFamilyName", data['mothersFamilyName']);
 setData("birthPlace", data['birthPlace']);
 setData("countryOfBirth", data['countryOfBirth']);
 setData("adress", "ul. " + data['adress1'] + "<br>" + data['adress2'] + " " + data['city']);
+setData("pesel", data['pesel']);
 
 if (localStorage.getItem("homeDate") == null){
   var homeDay = getRandom(1, 25);
@@ -144,7 +145,7 @@ if (month < 10){
 }
 
 var pesel = year.toString().substring(2) + month + day + later + "7";
-setData("pesel", pesel)
+//setData("pesel", pesel)
 
 function setData(id, value){
 
@@ -196,3 +197,4 @@ function openDB() {
         };
     });
 }
+
