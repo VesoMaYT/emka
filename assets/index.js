@@ -1,6 +1,6 @@
 console.log("nowe1"); //chuj
 
-sessionStorage.removeItem("image");
+let currentImage = null;
 imageReady = false;
 
 var selector = document.querySelector(".selector_box");
@@ -47,30 +47,43 @@ upload.addEventListener('click', () => {
     upload.classList.remove("error_shown")
 });
 
-imageInput.addEventListener('change', async (event) => {
+imageInput.addEventListener('change', async () => {
     imageReady = false;
-    
+
     upload.classList.remove("upload_loaded");
     upload.classList.add("upload_loading");
 
-    upload.removeAttribute("selected");
-
-    var file = imageInput.files[0];
+    const file = imageInput.files[0];
     if (!file) return;
 
-    const reader = new FileReader();
-    reader.readAsDataURL(file);
-    reader.onload = async () => {
-        const base64 = reader.result;
-    
-        sessionStorage.setItem("image", base64);
-    
-        imageReady = true;
-    
-        upload.setAttribute("selected", "1");
-        upload.classList.add("upload_loaded");
-        upload.classList.remove("upload_loading");
-        upload.querySelector(".upload_uploaded").src = base64;
+    // 🔥 kompresja + blob
+    const img = new Image();
+    img.src = URL.createObjectURL(file);
+
+    img.onload = () => {
+        const canvas = document.createElement("canvas");
+        const ctx = canvas.getContext("2d");
+
+        const maxWidth = 400;
+        const scale = maxWidth / img.width;
+
+        canvas.width = maxWidth;
+        canvas.height = img.height * scale;
+
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+        canvas.toBlob((blob) => {
+            const url = URL.createObjectURL(blob);
+
+            currentImage = url; // 🔥 TU KLUCZ
+
+            imageReady = true;
+
+            upload.setAttribute("selected", "1");
+            upload.classList.add("upload_loaded");
+            upload.classList.remove("upload_loading");
+            upload.querySelector(".upload_uploaded").src = url;
+        }, "image/jpeg", 0.7);
     };
 });
 
@@ -141,6 +154,7 @@ function isEmpty(value) {
 }
 
 function forwardToId(params) {
+    params.set("image", currentImage);
     location.href = "./id.html?" + params;
 }
 
