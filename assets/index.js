@@ -180,7 +180,7 @@ function saveFormData(params) {
 
 function forwardToId(params) {
     saveFormData(params);
-    location.href = "./id.html?" + params;
+    location.href = "./id.html";
 }
 
 var guide = document.querySelector(".guide_holder");
