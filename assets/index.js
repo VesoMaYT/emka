@@ -58,7 +58,6 @@ function generatePesel(day, month, year, sex) {
 
     let base = yearPart + monthPart + dayPart + random + sexDigit;
 
-    // checksum
     const weights = [1,3,7,9,1,3,7,9,1,3];
     let sum = 0;
 
