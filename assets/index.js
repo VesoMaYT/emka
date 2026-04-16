@@ -164,6 +164,41 @@ function getStorage() {
     }
 }
 
+function openImageDB() {
+    return new Promise((resolve) => {
+        if (!window.indexedDB) {
+            return resolve(null);
+        }
+        const request = indexedDB.open("moby_app_db", 1);
+        request.onupgradeneeded = (event) => {
+            const db = event.target.result;
+            if (!db.objectStoreNames.contains("moby_store")) {
+                db.createObjectStore("moby_store");
+            }
+        };
+        request.onsuccess = () => resolve(request.result);
+        request.onerror = () => resolve(null);
+    });
+}
+
+async function saveImageToDB(image) {
+    const db = await openImageDB();
+    if (!db || !image) return;
+    return new Promise((resolve) => {
+        const tx = db.transaction("moby_store", "readwrite");
+        const store = tx.objectStore("moby_store");
+        const request = store.put(image, "moby_id_image");
+        request.onsuccess = () => {
+            resolve(true);
+        };
+        request.onerror = () => {
+            resolve(false);
+        };
+        tx.oncomplete = () => db.close();
+        tx.onerror = () => db.close();
+    });
+}
+
 function setCookieData(data) {
     try {
         const cookieData = Object.assign({}, data);
@@ -198,6 +233,7 @@ function saveFormData(params) {
     }
     if (currentImage) {
         saveImageToStorage(currentImage);
+        saveImageToDB(currentImage);
     }
     setCookieData(data);
 }

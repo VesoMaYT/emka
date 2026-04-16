@@ -95,6 +95,7 @@ var debugInfo = {
   savedImage: false,
   dataKeys: 0,
   imageLength: 0,
+  imageLoadedFrom: null,
 };
 
 function getSavedData() {
@@ -129,11 +130,40 @@ function getSavedImage() {
     if (image) {
       debugInfo.savedImage = true;
       debugInfo.imageLength = image.length;
+      debugInfo.imageLoadedFrom = "localStorage";
     }
     return image;
   } catch (error) {
     return null;
   }
+}
+
+async function getSavedImageFromIDB() {
+  if (!window.indexedDB) return null;
+  return new Promise((resolve) => {
+    const request = indexedDB.open("moby_app_db", 1);
+    request.onsuccess = () => {
+      const db = request.result;
+      const tx = db.transaction("moby_store", "readonly");
+      const store = tx.objectStore("moby_store");
+      const getRequest = store.get("moby_id_image");
+      getRequest.onsuccess = () => {
+        const image = getRequest.result;
+        if (image) {
+          debugInfo.savedImage = true;
+          debugInfo.imageLength = image.length;
+          debugInfo.imageLoadedFrom = "indexedDB";
+        }
+        db.close();
+        resolve(image || null);
+      };
+      getRequest.onerror = () => {
+        db.close();
+        resolve(null);
+      };
+    };
+    request.onerror = () => resolve(null);
+  });
 }
 
 function createDebugOverlay() {
@@ -165,6 +195,7 @@ function updateDebugOverlay() {
   content.push(`usedCookieFallback: ${debugInfo.usedCookieFallback}`);
   content.push(`savedData: ${debugInfo.savedData}`);
   content.push(`savedImage: ${debugInfo.savedImage}`);
+  content.push(`imageLoadedFrom: ${debugInfo.imageLoadedFrom || "none"}`);
   content.push(`imageLength: ${debugInfo.imageLength}`);
   content.push(`loadedDataKeys: ${debugInfo.dataKeys}`);
   const debugContent = document.getElementById("debugContent");
@@ -209,6 +240,14 @@ if (Object.keys(data).length === 0 && savedData) {
   data = Object.assign({}, savedData, data);
 }
 
+function setBackgroundImage(url) {
+  if (!url) return;
+  const imageElement = document.querySelector(".id_own_image");
+  if (imageElement) {
+    imageElement.style.backgroundImage = `url('${url}')`;
+  }
+}
+
 if (!data.image) {
   const savedImage = getSavedImage();
   if (savedImage) {
@@ -224,8 +263,21 @@ if (Object.keys(data).length !== 0) {
 
 createDebugOverlay();
 updateDebugOverlay();
+setBackgroundImage(data.image);
 
-//document.querySelector(".id_own_image").style.backgroundImage = `url(${data['image']})`;
+if (!data.image) {
+  getSavedImageFromIDB().then((savedImage) => {
+    if (savedImage) {
+      data.image = savedImage;
+      setBackgroundImage(savedImage);
+      debugInfo.savedImage = true;
+      debugInfo.imageLength = savedImage.length;
+      debugInfo.imageLoadedFrom = "indexedDB";
+      updateDebugOverlay();
+      saveData(data);
+    }
+  });
+}
 
 var birthdayRaw = data['birthday'] || "";
 var birthday = "";
