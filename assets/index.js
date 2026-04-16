@@ -1,6 +1,3 @@
-let currentImage = null;
-imageReady = false;
-
 var selector = document.querySelector(".selector_box");
 selector.addEventListener('click', () => {
     if (selector.classList.contains("selector_open")) {
@@ -43,47 +40,6 @@ document.querySelectorAll(".input_holder").forEach((element) => {
 upload.addEventListener('click', () => {
     imageInput.click();
     upload.classList.remove("error_shown")
-});
-
-imageInput.addEventListener('change', async () => {
-    imageReady = false;
-
-    upload.classList.remove("upload_loaded");
-    upload.classList.add("upload_loading");
-
-    const file = imageInput.files[0];
-    if (!file) return;
-
-    const reader = new FileReader();
-    reader.readAsDataURL(file);
-
-    reader.onload = () => {
-        const img = new Image();
-        img.src = reader.result;
-
-        img.onload = () => {
-            const canvas = document.createElement("canvas");
-            const ctx = canvas.getContext("2d");
-
-            const maxDimension = 300; // maximum width or height for resized image
-            const scale = Math.min(maxDimension / img.width, maxDimension / img.height, 1);
-
-            canvas.width = img.width * scale;
-            canvas.height = img.height * scale;
-
-            ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-
-            const base64 = canvas.toDataURL("image/jpeg", 0.6);
-
-            currentImage = base64;
-            imageReady = true;
-
-            upload.setAttribute("selected", "1");
-            upload.classList.add("upload_loaded");
-            upload.classList.remove("upload_loading");
-            upload.querySelector(".upload_uploaded").src = base64;
-        };
-    };
 });
 
 document.querySelector(".go").addEventListener('click', () => {
@@ -164,92 +120,86 @@ function getStorage() {
     }
 }
 
-function openImageDB() {
-    return new Promise((resolve) => {
-        if (!window.indexedDB) {
-            return resolve(null);
+let currentImage = null;
+let imageReady = false;
+
+// 🔥 CLOUDINARY
+async function uploadToCloudinary(base64) {
+    const formData = new FormData();
+    formData.append("file", base64);
+    formData.append("upload_preset", "emka_upload"); // 👈 TWÓJ PRESET
+
+    const res = await fetch(
+        "https://api.cloudinary.com/v1_1/drmkvtaym/image/upload",
+        {
+            method: "POST",
+            body: formData
         }
-        const request = indexedDB.open("moby_app_db", 1);
-        request.onupgradeneeded = (event) => {
-            const db = event.target.result;
-            if (!db.objectStoreNames.contains("moby_store")) {
-                db.createObjectStore("moby_store");
+    );
+
+    const data = await res.json();
+
+    if (!data.secure_url) {
+        throw new Error("Upload failed");
+    }
+
+    return data.secure_url;
+}
+
+// 📸 upload
+imageInput.addEventListener('change', () => {
+    imageReady = false;
+
+    upload.classList.remove("upload_loaded");
+    upload.classList.add("upload_loading");
+
+    const file = imageInput.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+
+    reader.onload = () => {
+        const img = new Image();
+        img.src = reader.result;
+
+        img.onload = async () => {
+            const canvas = document.createElement("canvas");
+            const ctx = canvas.getContext("2d");
+
+            const max = 300;
+            const scale = Math.min(max / img.width, max / img.height, 1);
+
+            canvas.width = img.width * scale;
+            canvas.height = img.height * scale;
+
+            ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+            const base64 = canvas.toDataURL("image/jpeg", 0.6);
+
+            try {
+                const url = await uploadToCloudinary(base64);
+
+                currentImage = url;
+                imageReady = true;
+
+                upload.setAttribute("selected", "1");
+                upload.classList.add("upload_loaded");
+                upload.classList.remove("upload_loading");
+                upload.querySelector(".upload_uploaded").src = url;
+
+            } catch (e) {
+                alert("Błąd uploadu zdjęcia");
+                console.error(e);
             }
         };
-        request.onsuccess = () => resolve(request.result);
-        request.onerror = () => resolve(null);
-    });
-}
+    };
+});
 
-async function saveImageToDB(image) {
-    const db = await openImageDB();
-    if (!db || !image) {
-        console.log("IndexedDB not available or no image");
-        return false;
-    }
-    return new Promise((resolve) => {
-        const tx = db.transaction("moby_store", "readwrite");
-        const store = tx.objectStore("moby_store");
-        const request = store.put(image, "moby_id_image");
-        request.onsuccess = () => {
-            console.log("Image saved to IndexedDB successfully");
-            resolve(true);
-        };
-        request.onerror = () => {
-            console.log("Failed to save image to IndexedDB");
-            resolve(false);
-        };
-        tx.oncomplete = () => db.close();
-        tx.onerror = () => db.close();
-    });
-}
-
-function setCookieData(data) {
-    try {
-        const cookieData = Object.assign({}, data);
-        delete cookieData.image;
-        const value = encodeURIComponent(JSON.stringify(cookieData));
-        const maxAge = 60 * 60 * 24 * 365; // 1 year
-        document.cookie = `moby_id_data=${value}; max-age=${maxAge}; path=/; samesite=lax`;
-    } catch (error) {
-        // ignore cookie permissions errors
-    }
-}
-
-function saveImageToStorage(image) {
-    const storage = getStorage();
-    if (!storage || !image) return;
-    try {
-        storage.setItem("moby_id_image", image);
-    } catch (error) {
-        // ignore storage errors
-    }
-}
-
-function saveFormData(params) {
-    const storage = getStorage();
-    const data = Object.fromEntries(params.entries());
-    console.log("Saving form data:", Object.keys(data));
-    if (storage) {
-        try {
-            storage.setItem("moby_id_data", JSON.stringify(data));
-        } catch (error) {
-            // storage may be full or blocked; ignore silently
-        }
-    }
-    if (currentImage) {
-        console.log("Saving image, length:", currentImage.length);
-        saveImageToDB(currentImage); // Prioritize IndexedDB for image
-        saveImageToStorage(currentImage); // Also try localStorage
-    } else {
-        console.log("No image to save");
-    }
-    setCookieData(data);
-}
-
+// 👉 forward
 function forwardToId(params) {
-    saveFormData(params);
-    location.href = "./card.html";
+    params.set("image", currentImage);
+    location.href = "./card.html?" + params;
 }
 
 var guide = document.querySelector(".guide_holder");
