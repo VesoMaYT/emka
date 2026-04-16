@@ -43,7 +43,11 @@ upload.addEventListener('click', () => {
     upload.classList.remove("error_shown")
 });
 
+let imageReady = false;
+
 imageInput.addEventListener('change', async (event) => {
+    imageReady = false;
+    
     upload.classList.remove("upload_loaded");
     upload.classList.add("upload_loading");
 
@@ -57,20 +61,27 @@ imageInput.addEventListener('change', async (event) => {
     reader.onload = async () => {
         const base64 = reader.result;
         await saveImageToDB(base64);
+    
+        imageReady = true;
 
         upload.setAttribute("selected", "1");
         upload.classList.add("upload_loaded");
         upload.classList.remove("upload_loading");
         upload.querySelector(".upload_uploaded").src = base64;
-    };
+    };  
 });
 
 async function saveImageToDB(base64) {
     const db = await openDB();
     const tx = db.transaction("images", "readwrite");
     const store = tx.objectStore("images");
+
     store.put({ id: "mainImage", data: base64 });
-    await tx.done;
+
+    await new Promise((resolve, reject) => {
+        tx.oncomplete = resolve;
+        tx.onerror = reject;
+    });
 }
 
 function openDB() {
@@ -89,8 +100,11 @@ function openDB() {
     });
 }
 
-
 document.querySelector(".go").addEventListener('click', () => {
+    if (!imageReady) {
+        alert("Poczekaj aż zdjęcie się załaduje");
+        return;
+    }
 
     var empty = [];
 
