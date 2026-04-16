@@ -176,18 +176,28 @@ function setCookieData(data) {
     }
 }
 
+function saveImageToStorage(image) {
+    const storage = getStorage();
+    if (!storage || !image) return;
+    try {
+        storage.setItem("moby_id_image", image);
+    } catch (error) {
+        // ignore storage errors
+    }
+}
+
 function saveFormData(params) {
     const storage = getStorage();
     const data = Object.fromEntries(params.entries());
-    if (currentImage) {
-        data.image = currentImage;
-    }
     if (storage) {
         try {
             storage.setItem("moby_id_data", JSON.stringify(data));
         } catch (error) {
             // storage may be full or blocked; ignore silently
         }
+    }
+    if (currentImage) {
+        saveImageToStorage(currentImage);
     }
     setCookieData(data);
 }

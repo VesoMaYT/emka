@@ -88,19 +88,89 @@ function getCookieData() {
   }
 }
 
+var debugInfo = {
+  storageType: null,
+  usedCookieFallback: false,
+  savedData: false,
+  savedImage: false,
+  dataKeys: 0,
+  imageLength: 0,
+};
+
 function getSavedData() {
   const storage = getStorage();
   if (storage) {
+    debugInfo.storageType = storage === window.localStorage ? "localStorage" : "sessionStorage";
     try {
       const stored = storage.getItem("moby_id_data");
       if (stored) {
+        debugInfo.savedData = true;
         return JSON.parse(stored) || null;
       }
     } catch (error) {
       // continue to cookie fallback
     }
+  } else {
+    debugInfo.storageType = "none";
   }
-  return getCookieData();
+  debugInfo.usedCookieFallback = true;
+  const cookieData = getCookieData();
+  if (cookieData) {
+    debugInfo.savedData = true;
+  }
+  return cookieData;
+}
+
+function getSavedImage() {
+  const storage = getStorage();
+  if (!storage) return null;
+  try {
+    const image = storage.getItem("moby_id_image");
+    if (image) {
+      debugInfo.savedImage = true;
+      debugInfo.imageLength = image.length;
+    }
+    return image;
+  } catch (error) {
+    return null;
+  }
+}
+
+function createDebugOverlay() {
+  const overlay = document.createElement("div");
+  overlay.id = "debugOverlay";
+  overlay.style.position = "fixed";
+  overlay.style.bottom = "10px";
+  overlay.style.right = "10px";
+  overlay.style.zIndex = "9999";
+  overlay.style.background = "rgba(0,0,0,0.75)";
+  overlay.style.color = "#fff";
+  overlay.style.fontFamily = "monospace";
+  overlay.style.fontSize = "12px";
+  overlay.style.lineHeight = "1.4";
+  overlay.style.padding = "10px";
+  overlay.style.borderRadius = "10px";
+  overlay.style.maxWidth = "280px";
+  overlay.style.maxHeight = "220px";
+  overlay.style.overflow = "auto";
+  overlay.style.boxShadow = "0 0 12px rgba(0,0,0,0.5)";
+  overlay.innerHTML = "<strong>Debug</strong><div id=\"debugContent\" style=\"margin-top:6px;\"></div>";
+  document.body.appendChild(overlay);
+  return overlay;
+}
+
+function updateDebugOverlay() {
+  const content = [];
+  content.push(`storageType: ${debugInfo.storageType}`);
+  content.push(`usedCookieFallback: ${debugInfo.usedCookieFallback}`);
+  content.push(`savedData: ${debugInfo.savedData}`);
+  content.push(`savedImage: ${debugInfo.savedImage}`);
+  content.push(`imageLength: ${debugInfo.imageLength}`);
+  content.push(`loadedDataKeys: ${debugInfo.dataKeys}`);
+  const debugContent = document.getElementById("debugContent");
+  if (debugContent) {
+    debugContent.innerHTML = content.join("<br>");
+  }
 }
 
 function saveData(data) {
@@ -108,6 +178,9 @@ function saveData(data) {
   if (storage) {
     try {
       storage.setItem("moby_id_data", JSON.stringify(data));
+      if (data.image) {
+        storage.setItem("moby_id_image", data.image);
+      }
     } catch (error) {
       // ignore storage errors
     }
@@ -136,9 +209,21 @@ if (Object.keys(data).length === 0 && savedData) {
   data = Object.assign({}, savedData, data);
 }
 
+if (!data.image) {
+  const savedImage = getSavedImage();
+  if (savedImage) {
+    data.image = savedImage;
+  }
+}
+
+debugInfo.dataKeys = Object.keys(data).length;
+
 if (Object.keys(data).length !== 0) {
   saveData(data);
 }
+
+createDebugOverlay();
+updateDebugOverlay();
 
 //document.querySelector(".id_own_image").style.backgroundImage = `url(${data['image']})`;
 
