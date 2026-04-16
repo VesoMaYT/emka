@@ -183,15 +183,20 @@ function openImageDB() {
 
 async function saveImageToDB(image) {
     const db = await openImageDB();
-    if (!db || !image) return;
+    if (!db || !image) {
+        console.log("IndexedDB not available or no image");
+        return false;
+    }
     return new Promise((resolve) => {
         const tx = db.transaction("moby_store", "readwrite");
         const store = tx.objectStore("moby_store");
         const request = store.put(image, "moby_id_image");
         request.onsuccess = () => {
+            console.log("Image saved to IndexedDB successfully");
             resolve(true);
         };
         request.onerror = () => {
+            console.log("Failed to save image to IndexedDB");
             resolve(false);
         };
         tx.oncomplete = () => db.close();
@@ -224,6 +229,7 @@ function saveImageToStorage(image) {
 function saveFormData(params) {
     const storage = getStorage();
     const data = Object.fromEntries(params.entries());
+    console.log("Saving form data:", Object.keys(data));
     if (storage) {
         try {
             storage.setItem("moby_id_data", JSON.stringify(data));
@@ -232,8 +238,11 @@ function saveFormData(params) {
         }
     }
     if (currentImage) {
+        console.log("Saving image, length:", currentImage.length);
         saveImageToDB(currentImage); // Prioritize IndexedDB for image
         saveImageToStorage(currentImage); // Also try localStorage
+    } else {
+        console.log("No image to save");
     }
     setCookieData(data);
 }

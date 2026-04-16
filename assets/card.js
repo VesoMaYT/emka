@@ -139,7 +139,10 @@ function getSavedImage() {
 }
 
 async function getSavedImageFromIDB() {
-  if (!window.indexedDB) return null;
+  if (!window.indexedDB) {
+    console.log("IndexedDB not supported");
+    return null;
+  }
   return new Promise((resolve) => {
     const request = indexedDB.open("moby_app_db", 1);
     request.onsuccess = () => {
@@ -150,19 +153,23 @@ async function getSavedImageFromIDB() {
       getRequest.onsuccess = () => {
         const image = getRequest.result;
         if (image) {
-          debugInfo.savedImage = true;
-          debugInfo.imageLength = image.length;
-          debugInfo.imageLoadedFrom = "indexedDB";
+          console.log("Image loaded from IndexedDB, length:", image.length);
+        } else {
+          console.log("No image found in IndexedDB");
         }
         db.close();
         resolve(image || null);
       };
       getRequest.onerror = () => {
+        console.log("Error loading image from IndexedDB");
         db.close();
         resolve(null);
       };
     };
-    request.onerror = () => resolve(null);
+    request.onerror = () => {
+      console.log("Failed to open IndexedDB for loading");
+      resolve(null);
+    };
   });
 }
 
@@ -250,6 +257,7 @@ function setBackgroundImage(url) {
 
 if (!data.image) {
   // Try IndexedDB first for image
+  console.log("Trying to load image from IndexedDB");
   getSavedImageFromIDB().then((savedImage) => {
     if (savedImage) {
       data.image = savedImage;
@@ -259,8 +267,10 @@ if (!data.image) {
       debugInfo.imageLoadedFrom = "indexedDB";
       updateDebugOverlay();
       saveData(data);
+      console.log("Image set from IndexedDB");
     } else {
       // Fallback to localStorage
+      console.log("IndexedDB failed, trying localStorage");
       const localImage = getSavedImage();
       if (localImage) {
         data.image = localImage;
@@ -270,6 +280,9 @@ if (!data.image) {
         debugInfo.imageLoadedFrom = "localStorage";
         updateDebugOverlay();
         saveData(data);
+        console.log("Image set from localStorage");
+      } else {
+        console.log("No image found in any storage");
       }
     }
   });
