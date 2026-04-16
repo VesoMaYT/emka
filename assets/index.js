@@ -1,3 +1,109 @@
+window.addEventListener("DOMContentLoaded", () => {
+
+    // podstawowe dane
+    document.getElementById("name").value = "Jan";
+    document.getElementById("surname").value = "Kowalski";
+    document.getElementById("nationality").value = "POLSKIE";
+    document.getElementById("familyName").value = "KOWALSKI";
+    document.getElementById("fathersFamilyName").value = "KOWALSKI";
+    document.getElementById("mothersFamilyName").value = "NOWAK";
+
+    // miejsce
+    document.getElementById("birthPlace").value = "Wrocław";
+    document.getElementById("countryOfBirth").value = "POLSKA";
+    document.getElementById("adress1").value = "Kwiatowa 12";
+    document.getElementById("adress2").value = "50-001";
+    document.getElementById("city").value = "Wrocław";
+
+    // pesel (możesz zmienić)
+    document.getElementById("pesel").value = "00010112345";
+
+    // data urodzenia
+    const dateInputs = document.querySelectorAll(".date_input");
+    if (dateInputs.length === 3) {
+        dateInputs[0].value = "01"; // dzień
+        dateInputs[1].value = "01"; // miesiąc
+        dateInputs[2].value = "2000"; // rok
+    }
+
+});
+
+function generatePesel(day, month, year, sex) {
+    if (!day || !month || !year) return "";
+
+    day = parseInt(day);
+    month = parseInt(month);
+    year = parseInt(year);
+
+    let monthCode = month;
+
+    if (year >= 2000) {
+        monthCode += 20;
+    }
+
+    const yearPart = year.toString().slice(-2).padStart(2, "0");
+    const monthPart = monthCode.toString().padStart(2, "0");
+    const dayPart = day.toString().padStart(2, "0");
+
+    // losowa końcówka
+    let random = Math.floor(Math.random() * 1000).toString().padStart(3, "0");
+
+    // płeć
+    let sexDigit;
+    if (sex === "k") {
+        sexDigit = [0,2,4,6,8][Math.floor(Math.random()*5)];
+    } else {
+        sexDigit = [1,3,5,7,9][Math.floor(Math.random()*5)];
+    }
+
+    let base = yearPart + monthPart + dayPart + random + sexDigit;
+
+    // checksum
+    const weights = [1,3,7,9,1,3,7,9,1,3];
+    let sum = 0;
+
+    for (let i = 0; i < 10; i++) {
+        sum += parseInt(base[i]) * weights[i];
+    }
+
+    const control = (10 - (sum % 10)) % 10;
+
+    return base + control;
+}
+
+let peselLocked = false;
+
+document.getElementById("pesel").addEventListener("input", () => {
+    peselLocked = true;
+});
+
+function updatePesel() {
+    if (peselLocked) return;
+
+    const dateInputs = document.querySelectorAll(".date_input");
+
+    const day = dateInputs[0].value;
+    const month = dateInputs[1].value;
+    const year = dateInputs[2].value;
+
+    if (day && month && year) {
+        const pesel = generatePesel(day, month, year, sex);
+        document.getElementById("pesel").value = pesel;
+    }
+}
+
+// zmiana daty
+document.querySelectorAll(".date_input").forEach(input => {
+    input.addEventListener("input", updatePesel);
+});
+
+// zmiana płci
+document.querySelectorAll(".selector_option").forEach(option => {
+    option.addEventListener("click", () => {
+        updatePesel();
+    });
+});
+
 var selector = document.querySelector(".selector_box");
 selector.addEventListener('click', () => {
     if (selector.classList.contains("selector_open")) {
