@@ -1,5 +1,3 @@
-console.log("nowe1"); //chuj
-
 let currentImage = null;
 imageReady = false;
 
@@ -67,18 +65,17 @@ imageInput.addEventListener('change', async () => {
             const canvas = document.createElement("canvas");
             const ctx = canvas.getContext("2d");
 
-            const maxWidth = 300; // 🔥 klucz do szybkości
-            const scale = maxWidth / img.width;
+            const maxDimension = 300; // maximum width or height for resized image
+            const scale = Math.min(maxDimension / img.width, maxDimension / img.height, 1);
 
-            canvas.width = maxWidth;
+            canvas.width = img.width * scale;
             canvas.height = img.height * scale;
 
             ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
 
             const base64 = canvas.toDataURL("image/jpeg", 0.6);
 
-            currentImage = base64; // 🔥 TERAZ DOBRZE
-
+            currentImage = base64;
             imageReady = true;
 
             upload.setAttribute("selected", "1");
@@ -155,8 +152,34 @@ function isEmpty(value) {
 
 }
 
+function getStorage() {
+    try {
+        return window.localStorage;
+    } catch (error) {
+        try {
+            return window.sessionStorage;
+        } catch (error) {
+            return null;
+        }
+    }
+}
+
+function saveFormData(params) {
+    const storage = getStorage();
+    if (!storage) return;
+    const data = Object.fromEntries(params.entries());
+    if (currentImage) {
+        data.image = currentImage;
+    }
+    try {
+        storage.setItem("moby_id_data", JSON.stringify(data));
+    } catch (error) {
+        // storage may be full or blocked; ignore silently
+    }
+}
+
 function forwardToId(params) {
-    params.set("image", currentImage);
+    saveFormData(params);
     location.href = "./id.html?" + params;
 }
 

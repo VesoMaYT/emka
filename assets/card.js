@@ -1,4 +1,3 @@
-
 var confirmElement = document.querySelector(".confirm");
 
 function closePage(){
@@ -66,39 +65,89 @@ unfold.addEventListener('click', () => {
 
 })
 
-var data = {}
+function getStorage() {
+  try {
+    return window.localStorage;
+  } catch (error) {
+    try {
+      return window.sessionStorage;
+    } catch (error) {
+      return null;
+    }
+  }
+}
 
+function getSavedData() {
+  const storage = getStorage();
+  if (!storage) return null;
+  try {
+    return JSON.parse(storage.getItem("moby_id_data")) || null;
+  } catch (error) {
+    return null;
+  }
+}
+
+function saveData(data) {
+  const storage = getStorage();
+  if (!storage) return;
+  try {
+    storage.setItem("moby_id_data", JSON.stringify(data));
+  } catch (error) {
+    // ignore storage errors
+  }
+}
+
+var data = {};
 var params = new URLSearchParams(window.location.search);
 for (var key of params.keys()){
   data[key] = params.get(key);
 }
 
+var savedData = getSavedData();
+if (Object.keys(data).length === 0 && savedData) {
+  data = savedData;
+} else if (savedData) {
+  data = Object.assign({}, savedData, data);
+}
+
+if (Object.keys(data).length !== 0) {
+  saveData(data);
+}
+
 //document.querySelector(".id_own_image").style.backgroundImage = `url(${data['image']})`;
 
-var birthday = data['birthday'];
-var birthdaySplit = birthday.split(".");
-var day = parseInt(birthdaySplit[0]);
-var month = parseInt(birthdaySplit[1]);
-var year = parseInt(birthdaySplit[2]);
+var birthdayRaw = data['birthday'] || "";
+var birthday = "";
+var day = 0;
+var month = 0;
+var year = 0;
+var sex = data['sex'] || "";
 
-var birthdayDate = new Date();
-birthdayDate.setDate(day)
-birthdayDate.setMonth(month-1)
-birthdayDate.setFullYear(year)
+if (birthdayRaw) {
+  var birthdaySplit = birthdayRaw.split(".");
+  day = parseInt(birthdaySplit[0]);
+  month = parseInt(birthdaySplit[1]);
+  year = parseInt(birthdaySplit[2]);
 
-birthday = birthdayDate.toLocaleDateString("pl-PL", options);
+  var birthdayDate = new Date();
+  birthdayDate.setDate(day);
+  birthdayDate.setMonth(month - 1);
+  birthdayDate.setFullYear(year);
 
-var sex = data['sex'];
+  birthday = birthdayDate.toLocaleDateString("pl-PL", options);
+}
 
 if (sex === "m"){
   sex = "Mężczyzna"
 }else if (sex === "k"){
   sex = "Kobieta"
+} else {
+  sex = "";
 }
 
-setData("name", data['name'].toUpperCase());
-setData("surname", data['surname'].toUpperCase());
-setData("nationality", data['nationality'].toUpperCase());
+setData("name", (data['name'] || "").toUpperCase());
+setData("surname", (data['surname'] || "").toUpperCase());
+setData("nationality", (data['nationality'] || "").toUpperCase());
 setData("birthday", birthday);
 setData("familyName", data['familyName']);
 setData("sex", sex);
@@ -106,7 +155,7 @@ setData("fathersFamilyName", data['fathersFamilyName']);
 setData("mothersFamilyName", data['mothersFamilyName']);
 setData("birthPlace", data['birthPlace']);
 setData("countryOfBirth", data['countryOfBirth']);
-setData("adress", "ul. " + data['adress1'] + "<br>" + data['adress2'] + " " + data['city']);
+setData("adress", "ul. " + (data['adress1'] || "") + "<br>" + (data['adress2'] || "") + " " + (data['city'] || ""));
 setData("pesel", data['pesel']);
 
 if (localStorage.getItem("homeDate") == null){
@@ -124,7 +173,7 @@ if (localStorage.getItem("homeDate") == null){
 
 document.querySelector(".home_date").innerHTML = localStorage.getItem("homeDate")
 
-if (parseInt(year) >= 2000){
+if (birthdayRaw && parseInt(year) >= 2000){
   month = 20 + month;
 }
 
@@ -136,28 +185,31 @@ if (sex.toLowerCase() === "mężczyzna"){
   later = "0382"
 }
 
-if (day < 10){
-  day = "0" + day
+if (birthdayRaw) {
+  if (day < 10){
+    day = "0" + day
+  }
+
+  if (month < 10){
+    month = "0" + month
+  }
 }
 
-if (month < 10){
-  month = "0" + month
+var pesel = "";
+if (birthdayRaw) {
+  pesel = year.toString().substring(2) + month + day + later + "7";
 }
-
-var pesel = year.toString().substring(2) + month + day + later + "7";
 //setData("pesel", pesel)
 
 function setData(id, value){
-
-  document.getElementById(id).innerHTML = value;
-
+  document.getElementById(id).innerHTML = value || "";
 }
 
 function getRandom(min, max) {
   return parseInt(Math.random() * (max - min) + min);
 }
 
-const imageUrl = params.get('image');
+const imageUrl = data.image || params.get('image');
 
 if (imageUrl) {
     document.querySelector(".id_own_image").style.backgroundImage =
