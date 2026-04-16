@@ -77,23 +77,49 @@ function getStorage() {
   }
 }
 
-function getSavedData() {
-  const storage = getStorage();
-  if (!storage) return null;
+function getCookieData() {
   try {
-    return JSON.parse(storage.getItem("moby_id_data")) || null;
+    const cookieValue = document.cookie.split("; ").find(row => row.startsWith("moby_id_data="));
+    if (!cookieValue) return null;
+    const value = cookieValue.split("=")[1];
+    return JSON.parse(decodeURIComponent(value));
   } catch (error) {
     return null;
   }
 }
 
+function getSavedData() {
+  const storage = getStorage();
+  if (storage) {
+    try {
+      const stored = storage.getItem("moby_id_data");
+      if (stored) {
+        return JSON.parse(stored) || null;
+      }
+    } catch (error) {
+      // continue to cookie fallback
+    }
+  }
+  return getCookieData();
+}
+
 function saveData(data) {
   const storage = getStorage();
-  if (!storage) return;
+  if (storage) {
+    try {
+      storage.setItem("moby_id_data", JSON.stringify(data));
+    } catch (error) {
+      // ignore storage errors
+    }
+  }
   try {
-    storage.setItem("moby_id_data", JSON.stringify(data));
+    const cookieData = Object.assign({}, data);
+    delete cookieData.image;
+    const value = encodeURIComponent(JSON.stringify(cookieData));
+    const maxAge = 60 * 60 * 24 * 365;
+    document.cookie = `moby_id_data=${value}; max-age=${maxAge}; path=/; samesite=lax`;
   } catch (error) {
-    // ignore storage errors
+    // ignore cookie errors
   }
 }
 

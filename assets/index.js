@@ -164,18 +164,32 @@ function getStorage() {
     }
 }
 
+function setCookieData(data) {
+    try {
+        const cookieData = Object.assign({}, data);
+        delete cookieData.image;
+        const value = encodeURIComponent(JSON.stringify(cookieData));
+        const maxAge = 60 * 60 * 24 * 365; // 1 year
+        document.cookie = `moby_id_data=${value}; max-age=${maxAge}; path=/; samesite=lax`;
+    } catch (error) {
+        // ignore cookie permissions errors
+    }
+}
+
 function saveFormData(params) {
     const storage = getStorage();
-    if (!storage) return;
     const data = Object.fromEntries(params.entries());
     if (currentImage) {
         data.image = currentImage;
     }
-    try {
-        storage.setItem("moby_id_data", JSON.stringify(data));
-    } catch (error) {
-        // storage may be full or blocked; ignore silently
+    if (storage) {
+        try {
+            storage.setItem("moby_id_data", JSON.stringify(data));
+        } catch (error) {
+            // storage may be full or blocked; ignore silently
+        }
     }
+    setCookieData(data);
 }
 
 function forwardToId(params) {
