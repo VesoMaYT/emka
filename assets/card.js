@@ -200,7 +200,7 @@ function openDB() {
 }
 */
 
-const image = localStorage.getItem("image");
+const image = sessionStorage.getItem("image");
 
 if (image) {
     document.querySelector(".id_own_image").style.backgroundImage =
