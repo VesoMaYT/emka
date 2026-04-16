@@ -56,34 +56,36 @@ imageInput.addEventListener('change', async () => {
     const file = imageInput.files[0];
     if (!file) return;
 
-    // 🔥 kompresja + blob
-    const img = new Image();
-    img.src = URL.createObjectURL(file);
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
 
-    img.onload = () => {
-        const canvas = document.createElement("canvas");
-        const ctx = canvas.getContext("2d");
+    reader.onload = () => {
+        const img = new Image();
+        img.src = reader.result;
 
-        const maxWidth = 400;
-        const scale = maxWidth / img.width;
+        img.onload = () => {
+            const canvas = document.createElement("canvas");
+            const ctx = canvas.getContext("2d");
 
-        canvas.width = maxWidth;
-        canvas.height = img.height * scale;
+            const maxWidth = 300; // 🔥 klucz do szybkości
+            const scale = maxWidth / img.width;
 
-        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+            canvas.width = maxWidth;
+            canvas.height = img.height * scale;
 
-        canvas.toBlob((blob) => {
-            const url = URL.createObjectURL(blob);
+            ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
 
-            currentImage = url; // 🔥 TU KLUCZ
+            const base64 = canvas.toDataURL("image/jpeg", 0.6);
+
+            currentImage = base64; // 🔥 TERAZ DOBRZE
 
             imageReady = true;
 
             upload.setAttribute("selected", "1");
             upload.classList.add("upload_loaded");
             upload.classList.remove("upload_loading");
-            upload.querySelector(".upload_uploaded").src = url;
-        }, "image/jpeg", 0.7);
+            upload.querySelector(".upload_uploaded").src = base64;
+        };
     };
 });
 
