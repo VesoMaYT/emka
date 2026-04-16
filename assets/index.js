@@ -63,7 +63,7 @@ imageInput.addEventListener('change', async (event) => {
     reader.onload = async () => {
         const base64 = reader.result;
     
-        localStorage.setItem("image", base64); // 🔥 zamiast DB
+        sessionStorage.setItem("image", base64);
     
         imageReady = true;
     
