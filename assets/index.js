@@ -1,4 +1,4 @@
-console.log("nowe");
+console.log("nowe"); //chuj
 
 var selector = document.querySelector(".selector_box");
 selector.addEventListener('click', () => {
