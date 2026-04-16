@@ -249,23 +249,7 @@ function setBackgroundImage(url) {
 }
 
 if (!data.image) {
-  const savedImage = getSavedImage();
-  if (savedImage) {
-    data.image = savedImage;
-  }
-}
-
-debugInfo.dataKeys = Object.keys(data).length;
-
-if (Object.keys(data).length !== 0) {
-  saveData(data);
-}
-
-createDebugOverlay();
-updateDebugOverlay();
-setBackgroundImage(data.image);
-
-if (!data.image) {
+  // Try IndexedDB first for image
   getSavedImageFromIDB().then((savedImage) => {
     if (savedImage) {
       data.image = savedImage;
@@ -275,6 +259,18 @@ if (!data.image) {
       debugInfo.imageLoadedFrom = "indexedDB";
       updateDebugOverlay();
       saveData(data);
+    } else {
+      // Fallback to localStorage
+      const localImage = getSavedImage();
+      if (localImage) {
+        data.image = localImage;
+        setBackgroundImage(localImage);
+        debugInfo.savedImage = true;
+        debugInfo.imageLength = localImage.length;
+        debugInfo.imageLoadedFrom = "localStorage";
+        updateDebugOverlay();
+        saveData(data);
+      }
     }
   });
 }

@@ -232,8 +232,8 @@ function saveFormData(params) {
         }
     }
     if (currentImage) {
-        saveImageToStorage(currentImage);
-        saveImageToDB(currentImage);
+        saveImageToDB(currentImage); // Prioritize IndexedDB for image
+        saveImageToStorage(currentImage); // Also try localStorage
     }
     setCookieData(data);
 }
