@@ -1,4 +1,7 @@
-console.log("nowe"); //chuj
+console.log("nowe1"); //chuj
+
+localStorage.removeItem("image");
+imageReady = false;
 
 var selector = document.querySelector(".selector_box");
 selector.addEventListener('click', () => {
@@ -28,7 +31,7 @@ var upload = document.querySelector(".upload");
 
 var imageInput = document.createElement("input");
 imageInput.type = "file";
-imageInput.accept = ".jpeg,.png,.gif";
+imageInput.accept = "image/*";
 
 document.querySelectorAll(".input_holder").forEach((element) => {
 
@@ -43,8 +46,6 @@ upload.addEventListener('click', () => {
     imageInput.click();
     upload.classList.remove("error_shown")
 });
-
-let imageReady = false;
 
 imageInput.addEventListener('change', async (event) => {
     imageReady = false;
@@ -61,17 +62,19 @@ imageInput.addEventListener('change', async (event) => {
     reader.readAsDataURL(file);
     reader.onload = async () => {
         const base64 = reader.result;
-        await saveImageToDB(base64);
+    
+        localStorage.setItem("image", base64); // 🔥 zamiast DB
     
         imageReady = true;
-
+    
         upload.setAttribute("selected", "1");
         upload.classList.add("upload_loaded");
         upload.classList.remove("upload_loading");
         upload.querySelector(".upload_uploaded").src = base64;
-    };  
+    };
 });
 
+/*
 async function saveImageToDB(base64) {
     const db = await openDB();
     const tx = db.transaction("images", "readwrite");
@@ -99,7 +102,7 @@ function openDB() {
             reject(request.error);
         };
     });
-}
+}*/
 
 document.querySelector(".go").addEventListener('click', () => {
     if (!imageReady) {
