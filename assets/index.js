@@ -1,3 +1,4 @@
+console.log("nowe");
 
 var selector = document.querySelector(".selector_box");
 selector.addEventListener('click', () => {
