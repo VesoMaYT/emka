@@ -321,21 +321,23 @@ document.querySelectorAll(".date_input").forEach(input => {
     input.addEventListener("input", updatePesel);
 });
 
-// zmiana płci
-document.querySelectorAll(".selector_option").forEach(option => {
-    option.addEventListener("click", () => {
-        updatePesel();
+window.addEventListener("DOMContentLoaded", () => {
+    // zmiana płci
+    document.querySelectorAll(".selector_option").forEach(option => {
+        option.addEventListener("click", () => {
+            updatePesel();
+        });
     });
-});
 
-var selector = document.querySelector(".selector_box");
-selector.addEventListener('click', () => {
-    if (selector.classList.contains("selector_open")) {
-        selector.classList.remove("selector_open")
-    } else {
-        selector.classList.add("selector_open")
-    }
-})
+    var selector = document.querySelector(".selector_box");
+    selector.addEventListener('click', () => {
+        if (selector.classList.contains("selector_open")) {
+            selector.classList.remove("selector_open")
+        } else {
+            selector.classList.add("selector_open")
+        }
+    })
+});
 
 document.querySelectorAll(".date_input").forEach((element) => {
     element.addEventListener('click', () => {
