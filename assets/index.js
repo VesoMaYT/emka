@@ -349,17 +349,26 @@ window.addEventListener("DOMContentLoaded", () => {
     })
     
     var upload = document.querySelector(".upload");
+
+    if (upload) {
+        upload.addEventListener('click', () => {
+            imageInput.click();
+            upload.classList.remove("error_shown");
+        });
+    }
     
     var imageInput = document.createElement("input");
     imageInput.type = "file";
     imageInput.accept = "image/*";
     
     document.querySelectorAll(".input_holder").forEach((element) => {
-    
         var input = element.querySelector(".input");
-        input.addEventListener('click', () => {
-            element.classList.remove("error_shown");
-        })
+    
+        if (input) {
+            input.addEventListener('click', () => {
+                element.classList.remove("error_shown");
+            });
+        }
     
     });
     
@@ -529,14 +538,10 @@ window.addEventListener("DOMContentLoaded", () => {
     }
     
     var guide = document.querySelector(".guide_holder");
-    guide.addEventListener('click', () => {
-    
-        if (guide.classList.contains("unfolded")) {
-            guide.classList.remove("unfolded");
-        } else {
-            guide.classList.add("unfolded");
-        }
-    
-    })
 
+    if (guide) {
+        guide.addEventListener('click', () => {
+            guide.classList.toggle("unfolded");
+        });
+    }
 });
