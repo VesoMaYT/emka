@@ -169,6 +169,7 @@ if (base64Image) {
     document.querySelector(".id_own_image").style.backgroundImage = `url('${base64Image}')`;
 }*/
 
+/*
 (async function loadImageFromDB() {
     const db = await openDB();
     const tx = db.transaction("images", "readonly");
@@ -197,4 +198,13 @@ function openDB() {
         };
     });
 }
+*/
 
+const image = localStorage.getItem("image");
+
+if (image) {
+    document.querySelector(".id_own_image").style.backgroundImage =
+        `url('${image}')`;
+} else {
+    console.log("Brak zdjęcia w localStorage");
+}
