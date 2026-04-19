@@ -22,11 +22,6 @@ function clearClassList(){
 var time = document.getElementById("time");
 var options = { year: 'numeric', month: 'numeric', day: '2-digit' };
 var optionsTime = { second: 'numeric', minute: 'numeric', hour: '2-digit' };
-
-if (localStorage.getItem("update") == null){
-  localStorage.setItem("update", "24.12.2024")
-}
-
 var date = new Date();
 
 var updateText = document.querySelector(".bottom_update_value");
